@@ -18,12 +18,17 @@ var combo_progress: Array[Color] = []
 
 var spawner: Spawner
 var ui: UIController
+var effects
+
+const _EffectsScript = preload("res://effects.gd")
 
 # === LIFECYCLE ===
 func _ready() -> void:
 	randomize()
 	spawner = Spawner.new(self)
 	ui = UIController.new(self)
+	effects = _EffectsScript.new()
+	effects.setup(self)
 	ui.setup(score_label, combo_label, progress_bar, progress_label)
 	score_label.text = "Score: 0"
 	generate_new_combo()
@@ -84,7 +89,7 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 	pieza.rect.queue_free()
 	piezas.remove_at(index)
 
-	explode(pos, caught_color)
+	effects.explode(pos, caught_color)
 
 	score += 1
 	var bonus: int = 0
@@ -165,50 +170,6 @@ func show_level_complete_screen() -> void:
 		panel.queue_free()
 	)
 	panel.add_child(button)
-
-func create_circle_texture(color: Color, size: int = 30) -> ImageTexture:
-	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	image.fill(Color(0, 0, 0, 0))
-	var center := size / 2.0
-	var radius := size / 2.0 - 2
-	for x in range(size):
-		for y in range(size):
-			var dist := sqrt((x - center) * (x - center) + (y - center) * (y - center))
-			if dist <= radius:
-				image.set_pixel(x, y, color)
-	return ImageTexture.create_from_image(image)
-
-func explode(pos: Vector2, color: Color) -> void:
-	var particles := GPUParticles2D.new()
-	particles.position = pos + Vector2(40, 40)
-	particles.amount = 12
-	particles.lifetime = 0.4
-	particles.local_coords = true
-
-	var spread := CircleShape2D.new()
-	spread.radius = 5.0
-
-	var process_material := ParticleProcessMaterial.new()
-	process_material.direction = Vector3.RIGHT
-	process_material.spread = 360.0
-	process_material.initial_velocity_min = 150.0
-	process_material.initial_velocity_max = 250.0
-	process_material.gravity = Vector3(0, 400, 0)
-	process_material.scale_max = 2.0
-	process_material.scale_min = 1.0
-	process_material.color = color
-
-	particles.process_material = process_material
-	add_child(particles)
-	particles.restart()
-	particles.emitting = true
-
-	var timer := Timer.new()
-	timer.wait_time = 0.5
-	timer.one_shot = true
-	timer.timeout.connect(func(): particles.queue_free())
-	add_child(timer)
-	timer.start()
 
 # === GAME OVER ===
 func game_over() -> void:
