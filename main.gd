@@ -16,9 +16,12 @@ var combo_progress: Array[Color] = []
 @onready var progress_bar: ColorRect = $UI/ProgressBarFill
 @onready var progress_label: Label = $UI/ProgressLabel
 
+var spawner: Spawner
+
 # === LIFECYCLE ===
 func _ready() -> void:
 	randomize()
+	spawner = Spawner.new(self)
 	score_label.text = "Score: 0"
 	generate_new_combo()
 	draw_lane_markers()
@@ -106,25 +109,16 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 	update_progress_bar()
 
 func spawn_pieza() -> void:
-	var rect := ColorRect.new()
-	rect.size = Vector2(Config.PIECE_SIZE, Config.PIECE_SIZE)
-	var col: int = randi() % Config.COLS
-	rect.position = Vector2(get_col_x(col) - Config.PIECE_SIZE / 2, Config.SPAWN_Y)
-	var color := get_random_color()
-	rect.color = color
-	add_child(rect)
-
-	piezas.append(Pieza.new(rect, color))
+	var nueva_pieza: Pieza = spawner.spawn_pieza()
+	piezas.append(nueva_pieza)
 
 # === HELPERS ===
-func get_col_x(col: int) -> float:
-	return Config.COL_START_X + col * Config.COL_WIDTH
 
 # === COMBO ===
 func generate_new_combo() -> void:
 	combo_target.clear()
 	for i in range(Config.COMBO_SIZE):
-		combo_target.append(get_color_by_index(randi() % Config.COLOR_PIECE.size()))
+		combo_target.append(spawner.get_color_by_index(randi() % Config.COLOR_PIECE.size()))
 	burn_and_update_slots()
 
 func burn_and_update_slots() -> void:
@@ -165,9 +159,6 @@ func pulse_combo_label() -> void:
 
 func get_color_by_index(index: int) -> Color:
 	return Color(Config.COLOR_PIECE[index])
-
-func get_random_color() -> Color:
-	return Color(Config.COLOR_PIECE[randi() % Config.COLOR_PIECE.size()])
 
 # === UI ===
 func show_floating_text(pos: Vector2, amount: int) -> void:
