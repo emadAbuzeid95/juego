@@ -1,0 +1,18 @@
+# Godot
+.godot/
+*.import
+*.godot.log
+*.godot.export
+*.export
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Build
+*.pck
+*.exe
