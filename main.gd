@@ -17,14 +17,17 @@ var combo_progress: Array[Color] = []
 @onready var progress_label: Label = $UI/ProgressLabel
 
 var spawner: Spawner
+var ui: UIController
 
 # === LIFECYCLE ===
 func _ready() -> void:
 	randomize()
 	spawner = Spawner.new(self)
+	ui = UIController.new(self)
+	ui.setup(score_label, combo_label, progress_bar, progress_label)
 	score_label.text = "Score: 0"
 	generate_new_combo()
-	draw_lane_markers()
+	ui.draw_lane_markers()
 
 func _process(delta: float) -> void:
 	tiempo_actual += delta
@@ -56,8 +59,8 @@ func update_piezas(delta: float) -> void:
 			pieza.rect.queue_free()
 			piezas.remove_at(i)
 			score -= 1
-			show_floating_text(last_pos, -1)
-			score_label.text = "Score: " + str(score)
+			ui.show_floating_text(last_pos, -1)
+			ui.update_score_label(score)
 			update_progress_bar()
 			if score < 0:
 				game_over()
@@ -93,19 +96,19 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 			score += bonus
 			combo_progress.clear()
 			generate_new_combo()
-			pulse_combo_label()
+			ui.pulse_combo_label()
 	elif combo_progress.size() > 0 and caught_color != combo_target[combo_progress.size()]:
 		var penalty: int = combo_progress.size()
 		score -= penalty
 		combo_progress.clear()
-		show_floating_text(click_pos, -penalty)
+		ui.show_floating_text(click_pos, -penalty)
 	else:
-		show_floating_text(click_pos, 1)
+		ui.show_floating_text(click_pos, 1)
 
 	if bonus > 0:
-		show_floating_text(click_pos, bonus)
+		ui.show_floating_text(click_pos, bonus)
 
-	score_label.text = "Score: " + str(score)
+	ui.update_score_label(score)
 	update_progress_bar()
 
 func spawn_pieza() -> void:
@@ -119,71 +122,20 @@ func generate_new_combo() -> void:
 	combo_target.clear()
 	for i in range(Config.COMBO_SIZE):
 		combo_target.append(spawner.get_color_by_index(randi() % Config.COLOR_PIECE.size()))
-	burn_and_update_slots()
-
-func burn_and_update_slots() -> void:
-	for i in range(Config.COMBO_SIZE):
-		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
-		slot.modulate = Color(0.15, 0.15, 0.15, 1)
-		slot.scale = Vector2(0.5, 0.5)
-
-	await get_tree().create_timer(0.2).timeout
-
-	for i in range(Config.COMBO_SIZE):
-		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
-		slot.texture = create_circle_texture(combo_target[i], 30)
-		slot.modulate = Color.WHITE
-		var tween := create_tween()
-		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.15)
-
-func update_combo_ui() -> void:
-	for i in range(Config.COMBO_SIZE):
-		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
-		slot.modulate = Color.WHITE
-		slot.texture = create_circle_texture(combo_target[i], 30)
-		slot.scale = Vector2(1.0, 1.0)
-
-func pulse_combo_label() -> void:
-	var tween := create_tween()
-	tween.tween_property(combo_label, "scale", Vector2(1.5, 1.5), 0.1)
-	tween.tween_property(combo_label, "scale", Vector2(1.0, 1.0), 0.1)
-	combo_label.modulate = Color.YELLOW
-	var timer := Timer.new()
-	timer.wait_time = 0.3
-	timer.one_shot = true
-	timer.timeout.connect(func():
-		combo_label.modulate = Color.WHITE
-	)
-	add_child(timer)
-	timer.start()
-
-func get_color_by_index(index: int) -> Color:
-	return Color(Config.COLOR_PIECE[index])
+	ui.update_combo_target(combo_target)
+	ui.burn_and_update_slots()
 
 # === UI ===
-func show_floating_text(pos: Vector2, amount: int) -> void:
-	var label := Label.new()
-	label.text = "+" + str(amount) if amount > 0 else str(amount)
-	label.position = pos + Vector2(-20, -60)
-	label.add_theme_color_override("font_color", Color.GREEN if amount > 0 else Color.RED)
-	label.add_theme_font_size_override("font_size", 24)
-	add_child(label)
-
-	var tween := create_tween()
-	tween.tween_property(label, "position:y", pos.y - 120, 0.8)
-	tween.tween_callback(label.queue_free)
-
 func update_progress_bar() -> void:
-	var fill_height: float = clamp(float(score) * 400.0 / float(Config.PROGRESS_TARGET), 0.0, 400.0)
-	progress_bar.offset_top = 510.0 - fill_height
-	progress_bar.offset_bottom = 515.0
-	progress_label.text = str(score) + "/" + str(Config.PROGRESS_TARGET)
+	ui.update_progress_bar(score)
+	print("Score: ", score, " | Target: ", Config.PROGRESS_TARGET, " | Condición: ", score >= Config.PROGRESS_TARGET)
 
 	if score >= Config.PROGRESS_TARGET:
 		progress_label.text = "COMPLETE!"
-		show_level_complete()
+		show_level_complete_screen()
 
-func show_level_complete() -> void:
+func show_level_complete_screen() -> void:
+	print("==== LEVEL COMPLETE TRIGGERED ====")
 	get_tree().paused = true
 
 	var panel := ColorRect.new()
@@ -213,22 +165,6 @@ func show_level_complete() -> void:
 		panel.queue_free()
 	)
 	panel.add_child(button)
-
-func draw_lane_markers() -> void:
-	var left_boundary := Config.COL_START_X - Config.PLAYER_SIZE / 2
-	var right_boundary := Config.COL_START_X + Config.COLS * Config.COL_WIDTH - Config.PLAYER_SIZE / 2
-
-	var left_marker := ColorRect.new()
-	left_marker.size = Vector2(4, 720)
-	left_marker.color = Color(1, 1, 1, 0.3)
-	left_marker.position = Vector2(left_boundary - 20, 0)
-	add_child(left_marker)
-
-	var right_marker := ColorRect.new()
-	right_marker.size = Vector2(4, 720)
-	right_marker.color = Color(1, 1, 1, 0.3)
-	right_marker.position = Vector2(right_boundary + 20, 0)
-	add_child(right_marker)
 
 func create_circle_texture(color: Color, size: int = 30) -> ImageTexture:
 	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
