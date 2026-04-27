@@ -1,20 +1,5 @@
 extends Node2D
 
-# === CONFIG ===
-const COLS: int = 4
-const COL_WIDTH: int = 80
-const COL_START_X: int = 200
-const SPAWN_Y: int = -50
-const CATCH_Y: int = 620
-const PLAYER_SIZE: int = 80
-const PIECE_SIZE: int = 80
-const COMBO_SIZE: int = 3
-const PROGRESS_TARGET: int = 15
-
-# === COLORS ===
-const COLOR_PIECE = ["#e94560", "#0f3460", "#16c79a", "#f7b731"]
-const COLOR_EMPTY: Color = Color(0.3, 0.3, 0.3)
-
 # === STATE ===
 var piezas: Array[Pieza] = []
 var score: int = 0
@@ -63,8 +48,8 @@ func update_piezas(delta: float) -> void:
 		var pieza: Pieza = piezas[i]
 		pieza.rect.position.y += velocidad_caida * delta
 
-		if pieza.rect.position.y > CATCH_Y + 80:
-			var last_pos := pieza.rect.position + Vector2(PIECE_SIZE / 2, PIECE_SIZE / 2)
+		if pieza.rect.position.y > Config.CATCH_Y + 80:
+			var last_pos := pieza.rect.position + Vector2(Config.PIECE_SIZE / 2, Config.PIECE_SIZE / 2)
 			pieza.rect.queue_free()
 			piezas.remove_at(i)
 			score -= 1
@@ -80,8 +65,8 @@ func check_pieza_click(click_pos: Vector2) -> void:
 		var pieza_bounds := Rect2(
 			pieza.rect.position.x,
 			pieza.rect.position.y,
-			PIECE_SIZE,
-			PIECE_SIZE
+			Config.PIECE_SIZE,
+			Config.PIECE_SIZE
 		)
 		if pieza_bounds.has_point(click_pos):
 			handle_pieza_caught(pieza, i, click_pos)
@@ -98,9 +83,9 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 	score += 1
 	var bonus: int = 0
 
-	if combo_progress.size() < COMBO_SIZE and caught_color == combo_target[combo_progress.size()]:
+	if combo_progress.size() < Config.COMBO_SIZE and caught_color == combo_target[combo_progress.size()]:
 		combo_progress.append(caught_color)
-		if combo_progress.size() == COMBO_SIZE:
+		if combo_progress.size() == Config.COMBO_SIZE:
 			bonus = randi() % 8 + 3
 			score += bonus
 			combo_progress.clear()
@@ -122,9 +107,9 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 
 func spawn_pieza() -> void:
 	var rect := ColorRect.new()
-	rect.size = Vector2(PIECE_SIZE, PIECE_SIZE)
-	var col: int = randi() % COLS
-	rect.position = Vector2(get_col_x(col) - PIECE_SIZE / 2, SPAWN_Y)
+	rect.size = Vector2(Config.PIECE_SIZE, Config.PIECE_SIZE)
+	var col: int = randi() % Config.COLS
+	rect.position = Vector2(get_col_x(col) - Config.PIECE_SIZE / 2, Config.SPAWN_Y)
 	var color := get_random_color()
 	rect.color = color
 	add_child(rect)
@@ -133,24 +118,24 @@ func spawn_pieza() -> void:
 
 # === HELPERS ===
 func get_col_x(col: int) -> float:
-	return COL_START_X + col * COL_WIDTH
+	return Config.COL_START_X + col * Config.COL_WIDTH
 
 # === COMBO ===
 func generate_new_combo() -> void:
 	combo_target.clear()
-	for i in range(COMBO_SIZE):
-		combo_target.append(get_color_by_index(randi() % COLOR_PIECE.size()))
+	for i in range(Config.COMBO_SIZE):
+		combo_target.append(get_color_by_index(randi() % Config.COLOR_PIECE.size()))
 	burn_and_update_slots()
 
 func burn_and_update_slots() -> void:
-	for i in range(COMBO_SIZE):
+	for i in range(Config.COMBO_SIZE):
 		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
 		slot.modulate = Color(0.15, 0.15, 0.15, 1)
 		slot.scale = Vector2(0.5, 0.5)
 
 	await get_tree().create_timer(0.2).timeout
 
-	for i in range(COMBO_SIZE):
+	for i in range(Config.COMBO_SIZE):
 		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
 		slot.texture = create_circle_texture(combo_target[i], 30)
 		slot.modulate = Color.WHITE
@@ -158,7 +143,7 @@ func burn_and_update_slots() -> void:
 		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.15)
 
 func update_combo_ui() -> void:
-	for i in range(COMBO_SIZE):
+	for i in range(Config.COMBO_SIZE):
 		var slot: TextureRect = $UI.get_node("ComboSlot" + str(i))
 		slot.modulate = Color.WHITE
 		slot.texture = create_circle_texture(combo_target[i], 30)
@@ -179,10 +164,10 @@ func pulse_combo_label() -> void:
 	timer.start()
 
 func get_color_by_index(index: int) -> Color:
-	return Color(COLOR_PIECE[index])
+	return Color(Config.COLOR_PIECE[index])
 
 func get_random_color() -> Color:
-	return Color(COLOR_PIECE[randi() % COLOR_PIECE.size()])
+	return Color(Config.COLOR_PIECE[randi() % Config.COLOR_PIECE.size()])
 
 # === UI ===
 func show_floating_text(pos: Vector2, amount: int) -> void:
@@ -198,12 +183,12 @@ func show_floating_text(pos: Vector2, amount: int) -> void:
 	tween.tween_callback(label.queue_free)
 
 func update_progress_bar() -> void:
-	var fill_height: float = clamp(float(score) * 400.0 / float(PROGRESS_TARGET), 0.0, 400.0)
+	var fill_height: float = clamp(float(score) * 400.0 / float(Config.PROGRESS_TARGET), 0.0, 400.0)
 	progress_bar.offset_top = 510.0 - fill_height
 	progress_bar.offset_bottom = 515.0
-	progress_label.text = str(score) + "/" + str(PROGRESS_TARGET)
+	progress_label.text = str(score) + "/" + str(Config.PROGRESS_TARGET)
 
-	if score >= PROGRESS_TARGET:
+	if score >= Config.PROGRESS_TARGET:
 		progress_label.text = "COMPLETE!"
 		show_level_complete()
 
@@ -239,8 +224,8 @@ func show_level_complete() -> void:
 	panel.add_child(button)
 
 func draw_lane_markers() -> void:
-	var left_boundary := COL_START_X - PLAYER_SIZE / 2
-	var right_boundary := COL_START_X + COLS * COL_WIDTH - PLAYER_SIZE / 2
+	var left_boundary := Config.COL_START_X - Config.PLAYER_SIZE / 2
+	var right_boundary := Config.COL_START_X + Config.COLS * Config.COL_WIDTH - Config.PLAYER_SIZE / 2
 
 	var left_marker := ColorRect.new()
 	left_marker.size = Vector2(4, 720)
