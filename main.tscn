@@ -55,3 +55,27 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "COMBO"
 horizontal_alignment = 1
+
+[node name="ProgressBarBackground" type="ColorRect" parent="UI"]
+offset_left = 540.0
+offset_top = 120.0
+offset_right = 590.0
+offset_bottom = 520.0
+color = Color(0.2, 0.2, 0.2, 0.8)
+
+[node name="ProgressBarFill" type="ColorRect" parent="UI"]
+offset_left = 545.0
+offset_top = 510.0
+offset_right = 585.0
+offset_bottom = 515.0
+color = Color(0.913725, 0.27451, 0.376471, 1)
+
+[node name="ProgressLabel" type="Label" parent="UI"]
+offset_left = 530.0
+offset_top = 525.0
+offset_right = 600.0
+offset_bottom = 560.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "0/15"
+horizontal_alignment = 1

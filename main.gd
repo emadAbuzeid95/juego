@@ -9,6 +9,7 @@ const CATCH_Y: int = 620
 const PLAYER_SIZE: int = 80
 const PIECE_SIZE: int = 80
 const COMBO_SIZE: int = 3
+const PROGRESS_TARGET: int = 15
 
 # === COLORS ===
 const COLOR_PIECE = ["#e94560", "#0f3460", "#16c79a", "#f7b731"]
@@ -20,12 +21,15 @@ var score: int = 0
 var velocidad_caida: float = 250.0
 var tiempo_spawn: float = 1.5
 var tiempo_actual: float = 0.0
+var tiempo_juego: float = 0.0
 var combo_target: Array[Color] = []
 var combo_progress: Array[Color] = []
 
 # === NODES ===
 @onready var score_label: Label = $UI/ScoreLabel
 @onready var combo_label: Label = $UI/ComboLabel
+@onready var progress_bar: ColorRect = $UI/ProgressBarFill
+@onready var progress_label: Label = $UI/ProgressLabel
 
 # === CLASSES ===
 class Pieza:
@@ -45,6 +49,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	tiempo_actual += delta
+	tiempo_juego += delta
+
+	velocidad_caida = 250.0 + (tiempo_juego * 5.0)
+	tiempo_spawn = max(0.5, 1.5 - (tiempo_juego * 0.02))
+
 	if tiempo_actual >= tiempo_spawn:
 		tiempo_actual = 0.0
 		spawn_pieza()
@@ -64,8 +73,15 @@ func update_piezas(delta: float) -> void:
 		pieza.rect.position.y += velocidad_caida * delta
 
 		if pieza.rect.position.y > CATCH_Y + 80:
+			var last_pos := pieza.rect.position + Vector2(PIECE_SIZE / 2, PIECE_SIZE / 2)
 			pieza.rect.queue_free()
 			piezas.remove_at(i)
+			score -= 1
+			show_floating_text(last_pos, -1)
+			score_label.text = "Score: " + str(score)
+			update_progress_bar()
+			if score < 0:
+				game_over()
 
 func check_pieza_click(click_pos: Vector2) -> void:
 	for i in range(piezas.size() - 1, -1, -1):
@@ -111,6 +127,7 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 		show_floating_text(click_pos, bonus)
 
 	score_label.text = "Score: " + str(score)
+	update_progress_bar()
 
 func spawn_pieza() -> void:
 	var rect := ColorRect.new()
@@ -189,6 +206,47 @@ func show_floating_text(pos: Vector2, amount: int) -> void:
 	tween.tween_property(label, "position:y", pos.y - 120, 0.8)
 	tween.tween_callback(label.queue_free)
 
+func update_progress_bar() -> void:
+	var fill_height: float = clamp(float(score) * 400.0 / float(PROGRESS_TARGET), 0.0, 400.0)
+	progress_bar.offset_top = 510.0 - fill_height
+	progress_bar.offset_bottom = 515.0
+	progress_label.text = str(score) + "/" + str(PROGRESS_TARGET)
+
+	if score >= PROGRESS_TARGET:
+		progress_label.text = "COMPLETE!"
+		show_level_complete()
+
+func show_level_complete() -> void:
+	get_tree().paused = true
+
+	var panel := ColorRect.new()
+	panel.name = "LevelCompletePanel"
+	panel.position = Vector2(0, 0)
+	panel.size = Vector2(640, 720)
+	panel.color = Color(0, 0, 0, 0.85)
+	panel.z_index = 100
+	panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(panel)
+
+	var label := Label.new()
+	label.text = "LEVEL 1 COMPLETE!"
+	label.position = Vector2(160, 250)
+	label.add_theme_color_override("font_color", Color.GREEN)
+	label.add_theme_font_size_override("font_size", 42)
+	panel.add_child(label)
+
+	var button := Button.new()
+	button.text = "Continuar"
+	button.position = Vector2(250, 380)
+	button.size = Vector2(140, 50)
+	button.add_theme_font_size_override("font_size", 20)
+	button.process_mode = Node.PROCESS_MODE_ALWAYS
+	button.pressed.connect(func():
+		get_tree().paused = false
+		panel.queue_free()
+	)
+	panel.add_child(button)
+
 func draw_lane_markers() -> void:
 	var left_boundary := COL_START_X - PLAYER_SIZE / 2
 	var right_boundary := COL_START_X + COLS * COL_WIDTH - PLAYER_SIZE / 2
@@ -248,3 +306,58 @@ func explode(pos: Vector2, color: Color) -> void:
 	timer.timeout.connect(func(): particles.queue_free())
 	add_child(timer)
 	timer.start()
+
+# === GAME OVER ===
+func game_over() -> void:
+	get_tree().paused = true
+
+	var panel := ColorRect.new()
+	panel.name = "GameOverPanel"
+	panel.position = Vector2(0, 0)
+	panel.size = Vector2(640, 720)
+	panel.color = Color(0, 0, 0, 0.85)
+	panel.z_index = 100
+	panel.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(panel)
+
+	var label := Label.new()
+	label.text = "GAME OVER"
+	label.position = Vector2(220, 250)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_font_size_override("font_size", 48)
+	panel.add_child(label)
+
+	var score_lbl := Label.new()
+	score_lbl.text = "Score final: " + str(score)
+	score_lbl.position = Vector2(240, 320)
+	score_lbl.add_theme_color_override("font_color", Color(1, 0.5, 0.5))
+	score_lbl.add_theme_font_size_override("font_size", 28)
+	panel.add_child(score_lbl)
+
+	var button := Button.new()
+	button.text = "Reintentar"
+	button.position = Vector2(250, 400)
+	button.size = Vector2(140, 50)
+	button.add_theme_font_size_override("font_size", 20)
+	button.process_mode = Node.PROCESS_MODE_ALWAYS
+	button.pressed.connect(func():
+		get_tree().paused = false
+		restart_game()
+	)
+	panel.add_child(button)
+
+func restart_game() -> void:
+	for pieza in piezas:
+		pieza.rect.queue_free()
+	piezas.clear()
+
+	score = 0
+	combo_target.clear()
+	combo_progress.clear()
+
+	score_label.text = "Score: 0"
+	generate_new_combo()
+
+	var panel := get_node_or_null("GameOverPanel")
+	if panel:
+		panel.queue_free()
