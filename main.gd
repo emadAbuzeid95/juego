@@ -19,8 +19,10 @@ var combo_progress: Array[Color] = []
 var spawner: Spawner
 var ui: UIController
 var effects
+var overlay
 
 const _EffectsScript = preload("res://effects.gd")
+const _OverlayScript = preload("res://overlay_manager.gd")
 
 # === LIFECYCLE ===
 func _ready() -> void:
@@ -29,6 +31,8 @@ func _ready() -> void:
 	ui = UIController.new(self)
 	effects = _EffectsScript.new()
 	effects.setup(self)
+	overlay = _OverlayScript.new()
+	overlay.setup(self)
 	ui.setup(score_label, combo_label, progress_bar, progress_label)
 	score_label.text = "Score: 0"
 	generate_new_combo()
@@ -68,7 +72,7 @@ func update_piezas(delta: float) -> void:
 			ui.update_score_label(score)
 			update_progress_bar()
 			if score < 0:
-				game_over()
+				overlay.show_game_over_screen(score, restart_game)
 
 func check_pieza_click(click_pos: Vector2) -> void:
 	for i in range(piezas.size() - 1, -1, -1):
@@ -137,78 +141,7 @@ func update_progress_bar() -> void:
 
 	if score >= Config.PROGRESS_TARGET:
 		progress_label.text = "COMPLETE!"
-		show_level_complete_screen()
-
-func show_level_complete_screen() -> void:
-	print("==== LEVEL COMPLETE TRIGGERED ====")
-	get_tree().paused = true
-
-	var panel := ColorRect.new()
-	panel.name = "LevelCompletePanel"
-	panel.position = Vector2(0, 0)
-	panel.size = Vector2(640, 720)
-	panel.color = Color(0, 0, 0, 0.85)
-	panel.z_index = 100
-	panel.process_mode = Node.PROCESS_MODE_ALWAYS
-	add_child(panel)
-
-	var label := Label.new()
-	label.text = "LEVEL 1 COMPLETE!"
-	label.position = Vector2(160, 250)
-	label.add_theme_color_override("font_color", Color.GREEN)
-	label.add_theme_font_size_override("font_size", 42)
-	panel.add_child(label)
-
-	var button := Button.new()
-	button.text = "Continuar"
-	button.position = Vector2(250, 380)
-	button.size = Vector2(140, 50)
-	button.add_theme_font_size_override("font_size", 20)
-	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.pressed.connect(func():
-		get_tree().paused = false
-		panel.queue_free()
-	)
-	panel.add_child(button)
-
-# === GAME OVER ===
-func game_over() -> void:
-	get_tree().paused = true
-
-	var panel := ColorRect.new()
-	panel.name = "GameOverPanel"
-	panel.position = Vector2(0, 0)
-	panel.size = Vector2(640, 720)
-	panel.color = Color(0, 0, 0, 0.85)
-	panel.z_index = 100
-	panel.process_mode = Node.PROCESS_MODE_ALWAYS
-	add_child(panel)
-
-	var label := Label.new()
-	label.text = "GAME OVER"
-	label.position = Vector2(220, 250)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_font_size_override("font_size", 48)
-	panel.add_child(label)
-
-	var score_lbl := Label.new()
-	score_lbl.text = "Score final: " + str(score)
-	score_lbl.position = Vector2(240, 320)
-	score_lbl.add_theme_color_override("font_color", Color(1, 0.5, 0.5))
-	score_lbl.add_theme_font_size_override("font_size", 28)
-	panel.add_child(score_lbl)
-
-	var button := Button.new()
-	button.text = "Reintentar"
-	button.position = Vector2(250, 400)
-	button.size = Vector2(140, 50)
-	button.add_theme_font_size_override("font_size", 20)
-	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.pressed.connect(func():
-		get_tree().paused = false
-		restart_game()
-	)
-	panel.add_child(button)
+		overlay.show_level_complete_screen()
 
 func restart_game() -> void:
 	for pieza in piezas:
