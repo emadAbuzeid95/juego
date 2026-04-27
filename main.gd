@@ -23,6 +23,7 @@ var combo_manager
 const _EffectsScript = preload("res://effects.gd")
 const _OverlayScript = preload("res://overlay_manager.gd")
 const _ComboScript = preload("res://combo_manager.gd")
+const _DebugScript = preload("res://debug.gd")
 
 # === LIFECYCLE ===
 func _ready() -> void:
@@ -135,7 +136,7 @@ func generate_new_combo() -> void:
 # === UI ===
 func update_progress_bar() -> void:
 	ui.update_progress_bar(score)
-	print("Score: ", score, " | Target: ", Config.PROGRESS_TARGET, " | Condición: ", score >= Config.PROGRESS_TARGET)
+	_DebugScript.log("Score: " + str(score) + " | Target: " + str(Config.PROGRESS_TARGET) + " | Condición: " + str(score >= Config.PROGRESS_TARGET))
 
 	if score >= Config.PROGRESS_TARGET:
 		progress_label.text = "COMPLETE!"
