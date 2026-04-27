@@ -1,11 +1,19 @@
+## Effects - Sistema de partículas y efectos visuales.
+## Se encarga de crear explosiones de partículas cuando el jugador atrapa una pieza.
 class_name Effects
 extends Node
 
 var _parent: Node
 
+## Configura el padre para agregar las partículas como hijos.
+## [param parent] Nodo padre donde se instancian las partículas
 func setup(parent: Node) -> void:
 	_parent = parent
 
+## Crea una explosión de partículas en la posición dada con el color especificado.
+## Las partículas se expanden en 360° y desaparecen después de 0.5 segundos.
+## [param pos] Posición donde ocurre la explosión (se le suma un offset para centrar)
+## [param color] Color de las partículas
 func explode(pos: Vector2, color: Color) -> void:
 	var particles := GPUParticles2D.new()
 	particles.position = pos + Vector2(40, 40)

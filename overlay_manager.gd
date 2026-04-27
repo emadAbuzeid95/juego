@@ -1,12 +1,20 @@
+## OverlayManager - Maneja las pantallas de Game Over y Level Complete.
+## Crea paneles semitransparentes con etiquetas y botones.
 class_name OverlayManager
 extends Node
 
 var _parent: Node
 var _restart_callback: Callable
 
+## Configura el nodo padre para los overlays.
+## [param parent] Nodo padre donde se agregan los paneles
 func setup(parent: Node) -> void:
 	_parent = parent
 
+## Muestra la pantalla de Game Over.
+## Pausa el juego y muestra puntuación final con botón "Reintentar".
+## [param final_score] Puntuación final del jugador
+## [param on_restart] Callable que se ejecuta al presionar "Reintentar"
 func show_game_over_screen(final_score: int, on_restart: Callable) -> void:
 	_restart_callback = on_restart
 	_parent.get_tree().paused = true
@@ -43,6 +51,9 @@ func show_game_over_screen(final_score: int, on_restart: Callable) -> void:
 	button.pressed.connect(_on_restart_pressed.bind(panel))
 	panel.add_child(button)
 
+## Muestra la pantalla de Nivel Completado.
+## Pausa el juego y muestra mensaje de éxito con botón "Continuar".
+## Actualmente no hace nada al presionar continuar (solo desapila).
 func show_level_complete_screen() -> void:
 	_parent.get_tree().paused = true
 
@@ -71,12 +82,18 @@ func show_level_complete_screen() -> void:
 	button.pressed.connect(_on_continue_pressed.bind(panel))
 	panel.add_child(button)
 
+## Callback interno cuando se presiona "Reintentar".
+## Despausa el juego, elimina el panel y ejecuta el callback de restart.
+## [param panel] Panel a eliminar
 func _on_restart_pressed(panel: ColorRect) -> void:
 	_parent.get_tree().paused = false
 	panel.queue_free()
 	if _restart_callback.is_valid():
 		_restart_callback.call()
 
+## Callback interno cuando se presiona "Continuar".
+## Despausa el juego y elimina el panel.
+## [param panel] Panel a eliminar
 func _on_continue_pressed(panel: ColorRect) -> void:
 	_parent.get_tree().paused = false
 	panel.queue_free()
