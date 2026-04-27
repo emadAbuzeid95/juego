@@ -31,15 +31,6 @@ var combo_progress: Array[Color] = []
 @onready var progress_bar: ColorRect = $UI/ProgressBarFill
 @onready var progress_label: Label = $UI/ProgressLabel
 
-# === CLASSES ===
-class Pieza:
-	var rect: ColorRect
-	var color: Color
-
-	func _init(rect_: ColorRect, color_: Color):
-		rect = rect_
-		color = color_
-
 # === LIFECYCLE ===
 func _ready() -> void:
 	randomize()
