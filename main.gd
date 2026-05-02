@@ -7,6 +7,7 @@ var velocidad_caida: float = 250.0
 var tiempo_spawn: float = 1.5
 var tiempo_actual: float = 0.0
 var tiempo_juego: float = 0.0
+var level_complete_shown: bool = false
 
 # === NODES ===
 @onready var score_label: Label = $UI/ScoreLabel
@@ -138,9 +139,10 @@ func update_progress_bar() -> void:
 	ui.update_progress_bar(score)
 	_DebugScript.log("Score: " + str(score) + " | Target: " + str(Config.PROGRESS_TARGET) + " | Condición: " + str(score >= Config.PROGRESS_TARGET))
 
-	if score >= Config.PROGRESS_TARGET:
+	if score >= Config.PROGRESS_TARGET and not level_complete_shown:
+		level_complete_shown = true
 		progress_label.text = "COMPLETE!"
-		overlay.show_level_complete_screen()
+		overlay.show_level_complete_screen(advance_level)
 
 func restart_game() -> void:
 	for pieza in piezas:
@@ -150,6 +152,7 @@ func restart_game() -> void:
 	score = 0
 	tiempo_juego = 0.0
 	tiempo_actual = 0.0
+	level_complete_shown = false
 
 	score_label.text = "Score: 0"
 	combo_manager.generate_new_combo()
@@ -157,3 +160,15 @@ func restart_game() -> void:
 	var panel := get_node_or_null("GameOverPanel")
 	if panel:
 		panel.queue_free()
+	var lc_panel := get_node_or_null("LevelCompletePanel")
+	if lc_panel:
+		lc_panel.queue_free()
+
+## Callback cuando el jugador presiona "Continuar" tras completar el nivel.
+## Resetea la puntuación pero mantiene el combo actual.
+func advance_level() -> void:
+	score = 0
+	tiempo_juego = 0.0
+	level_complete_shown = false
+	score_label.text = "Score: 0"
+	update_progress_bar()

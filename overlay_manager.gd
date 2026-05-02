@@ -5,6 +5,7 @@ extends Node
 
 var _parent: Node
 var _restart_callback: Callable
+var _continue_callback: Callable
 
 ## Configura el nodo padre para los overlays.
 ## [param parent] Nodo padre donde se agregan los paneles
@@ -53,8 +54,9 @@ func show_game_over_screen(final_score: int, on_restart: Callable) -> void:
 
 ## Muestra la pantalla de Nivel Completado.
 ## Pausa el juego y muestra mensaje de éxito con botón "Continuar".
-## Actualmente no hace nada al presionar continuar (solo desapila).
-func show_level_complete_screen() -> void:
+## [param on_continue] Callable que se ejecuta al presionar "Continuar"
+func show_level_complete_screen(on_continue: Callable) -> void:
+	_continue_callback = on_continue
 	_parent.get_tree().paused = true
 
 	var panel := ColorRect.new()
@@ -92,8 +94,10 @@ func _on_restart_pressed(panel: ColorRect) -> void:
 		_restart_callback.call()
 
 ## Callback interno cuando se presiona "Continuar".
-## Despausa el juego y elimina el panel.
+## Despausa el juego, elimina el panel y ejecuta el callback de continuación.
 ## [param panel] Panel a eliminar
 func _on_continue_pressed(panel: ColorRect) -> void:
 	_parent.get_tree().paused = false
 	panel.queue_free()
+	if _continue_callback.is_valid():
+		_continue_callback.call()
