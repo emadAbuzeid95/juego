@@ -55,6 +55,8 @@ func _process(delta: float) -> void:
 	update_piezas(delta)
 
 func _input(event: InputEvent) -> void:
+	if get_tree().paused:
+		return
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:

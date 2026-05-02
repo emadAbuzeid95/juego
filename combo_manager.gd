@@ -28,6 +28,7 @@ func setup(parent: Node, spawner: Spawner, ui: UIController) -> void:
 ## Genera un nuevo combo objetivo aleatorio.
 ## Elige colores aleatorios y actualiza la UI con los slots del combo.
 func generate_new_combo() -> void:
+	clear_progress()
 	combo_target.clear()
 	for i in range(Config.COMBO_SIZE):
 		combo_target.append(_spawner.get_color_by_index(randi() % Config.COLOR_PIECE.size()))
