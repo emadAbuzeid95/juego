@@ -67,42 +67,6 @@ func update_progress_bar(score: int) -> void:
 func update_score_label(score: int) -> void:
 	score_label.text = "Score: " + str(score)
 
-## === LEVEL COMPLETE ===
-## Muestra la pantalla de "Nivel Completo" con botón continuar.
-## Pausa el juego hasta que el usuario presione continuar.
-## [param on_continue] Función a llamar cuando se presiona continuar
-func show_level_complete(on_continue: Callable) -> void:
-	parent.get_tree().paused = true
-
-	var panel := ColorRect.new()
-	panel.name = "LevelCompletePanel"
-	panel.position = Vector2(0, 0)
-	panel.size = Vector2(640, 720)
-	panel.color = Color(0, 0, 0, 0.85)
-	panel.z_index = 100
-	panel.process_mode = Node.PROCESS_MODE_ALWAYS
-	parent.add_child(panel)
-
-	var label := Label.new()
-	label.text = "LEVEL 1 COMPLETE!"
-	label.position = Vector2(160, 250)
-	label.add_theme_color_override("font_color", Color.GREEN)
-	label.add_theme_font_size_override("font_size", 42)
-	panel.add_child(label)
-
-	var button := Button.new()
-	button.text = "Continuar"
-	button.position = Vector2(250, 380)
-	button.size = Vector2(140, 50)
-	button.add_theme_font_size_override("font_size", 20)
-	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.pressed.connect(func():
-		parent.get_tree().paused = false
-		panel.queue_free()
-		on_continue.call()
-	)
-	panel.add_child(button)
-
 ## === LANE MARKERS ===
 ## Dibuja líneas verticales marcando los límites del área de juego.
 ## Ayudan al jugador a visualizar las columnas.
