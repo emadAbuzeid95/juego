@@ -138,6 +138,7 @@ func pulse_combo_label() -> void:
 	timer.one_shot = true
 	timer.timeout.connect(func():
 		combo_label.modulate = Color.WHITE
+		timer.queue_free()
 	)
 	parent.add_child(timer)
 	timer.start()

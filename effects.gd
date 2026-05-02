@@ -42,6 +42,9 @@ func explode(pos: Vector2, color: Color) -> void:
 	var timer := Timer.new()
 	timer.wait_time = 0.5
 	timer.one_shot = true
-	timer.timeout.connect(func(): particles.queue_free())
+	timer.timeout.connect(func(): 
+		particles.queue_free()
+		timer.queue_free()
+	)
 	_parent.add_child(timer)
 	timer.start()
