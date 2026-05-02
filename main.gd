@@ -75,8 +75,8 @@ func update_piezas(delta: float) -> void:
 			ui.show_floating_text(last_pos, -1)
 			ui.update_score_label(score)
 			update_progress_bar()
-			if score < 0:
-				overlay.show_game_over_screen(score, restart_game)
+			check_game_over()
+
 
 func check_pieza_click(click_pos: Vector2) -> void:
 	for i in range(piezas.size() - 1, -1, -1):
@@ -123,12 +123,17 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 
 	ui.update_score_label(score)
 	update_progress_bar()
+	check_game_over()
 
 func spawn_pieza() -> void:
 	var nueva_pieza: Pieza = spawner.spawn_pieza()
 	piezas.append(nueva_pieza)
 
 # === HELPERS ===
+## Verifica si el score es negativo y muestra Game Over.
+func check_game_over() -> void:
+	if score < 0:
+		overlay.show_game_over_screen(score, restart_game)
 
 # === COMBO ===
 func generate_new_combo() -> void:

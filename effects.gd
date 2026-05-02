@@ -21,9 +21,6 @@ func explode(pos: Vector2, color: Color) -> void:
 	particles.lifetime = 0.4
 	particles.local_coords = true
 
-	var spread := CircleShape2D.new()
-	spread.radius = 5.0
-
 	var process_material := ParticleProcessMaterial.new()
 	process_material.direction = Vector3.RIGHT
 	process_material.spread = 360.0
