@@ -156,6 +156,7 @@ func restart_game() -> void:
 
 	score_label.text = "Score: 0"
 	combo_manager.generate_new_combo()
+	update_progress_bar()
 
 	var panel := get_node_or_null("GameOverPanel")
 	if panel:
