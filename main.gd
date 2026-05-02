@@ -114,8 +114,11 @@ func handle_pieza_caught(pieza: Pieza, index: int, click_pos: Vector2) -> void:
 		var penalty: int = combo_manager.get_penalty()
 		score -= penalty
 		combo_manager.clear_progress()
+		ui.reset_combo_slots(combo_manager.combo_target)
 		ui.show_floating_text(click_pos, -penalty)
 	else:
+		if combo_manager.combo_progress.size() > 0:
+			ui.mark_slot_completed(combo_manager.combo_progress.size() - 1)
 		ui.show_floating_text(click_pos, 1)
 
 	if bonus > 0:

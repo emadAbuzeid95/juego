@@ -117,6 +117,22 @@ func burn_and_update_slots(targets: Array[Color]) -> void:
 		var tween := parent.create_tween()
 		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.15)
 
+## Oscurece un slot específico del combo para indicar que ya fue completado.
+## Se llama cada vez que el jugador acierta un color del combo en orden.
+## [param index] Índice del slot a oscurecer (0-based)
+func mark_slot_completed(index: int) -> void:
+	var slot: TextureRect = parent.get_node("UI/ComboSlot" + str(index))
+	slot.modulate = Color(0.35, 0.35, 0.35, 1)
+
+## Restaura todos los slots del combo a sus colores objetivo originales.
+## Se llama cuando el jugador falla un color y el progreso se reinicia.
+## [param targets] Array de colores objetivo del combo actual
+func reset_combo_slots(targets: Array[Color]) -> void:
+	for i in range(Config.COMBO_SIZE):
+		var slot: TextureRect = parent.get_node("UI/ComboSlot" + str(i))
+		slot.texture = create_circle_texture(targets[i], 30)
+		slot.modulate = Color.WHITE
+
 ## Produce un pulso visual en el label del combo (subida + bajada + color amarillo).
 ## Se llama cuando el jugador completa un combo válido.
 func pulse_combo_label() -> void:

@@ -1,6 +1,6 @@
 ## Configuración global del juego.
 ## Contiene todas las constantes usadas en el proyecto.
-extends RefCounted
+extends Node
 
 ## === COLUMNAS ===
 ## Número de columnas en el juego
