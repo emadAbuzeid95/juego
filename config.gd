@@ -1,6 +1,6 @@
 ## Configuración global del juego.
 ## Contiene todas las constantes usadas en el proyecto.
-extends Node
+extends RefCounted
 
 ## === COLUMNAS ===
 ## Número de columnas en el juego
@@ -28,6 +28,6 @@ const PROGRESS_TARGET: int = 15
 
 ## === COLORS ===
 ## Colores disponibles para las piezas (hex)
-const COLOR_PIECE = ["#e94560", "#0f3460", "#16c79a", "#f7b731"]
+const COLOR_PIECE: PackedStringArray = ["#e94560", "#0f3460", "#16c79a", "#f7b731"]
 ## Color para slots vacíos del combo
 const COLOR_EMPTY: Color = Color(0.3, 0.3, 0.3)
