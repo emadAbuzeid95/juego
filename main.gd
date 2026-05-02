@@ -148,6 +148,8 @@ func restart_game() -> void:
 	piezas.clear()
 
 	score = 0
+	tiempo_juego = 0.0
+	tiempo_actual = 0.0
 
 	score_label.text = "Score: 0"
 	combo_manager.generate_new_combo()
