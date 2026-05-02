@@ -31,8 +31,7 @@ func generate_new_combo() -> void:
 	combo_target.clear()
 	for i in range(Config.COMBO_SIZE):
 		combo_target.append(_spawner.get_color_by_index(randi() % Config.COLOR_PIECE.size()))
-	_ui.update_combo_target(combo_target)
-	_ui.burn_and_update_slots()
+	_ui.burn_and_update_slots(combo_target)
 
 ## Evalúa si un color atrapado es parte del combo o no.
 ## Compara el color atrapado con el siguiente color esperado del combo.

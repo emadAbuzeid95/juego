@@ -9,9 +9,6 @@ var combo_label: Label
 var progress_bar: ColorRect
 var progress_label: Label
 
-var combo_target: Array[Color]
-var combo_progress: Array[Color]
-
 ## Constructor del UIController
 ## [param parent_node] Nodo padre donde se crean los elementos de UI
 func _init(parent_node: Node2D) -> void:
@@ -32,8 +29,6 @@ func setup(
 	combo_label = combo_lbl
 	progress_bar = progress
 	progress_label = progress_lbl
-	combo_target = []
-	combo_progress = []
 
 ## === FLOATING TEXT ===
 ## Muestra texto que flota y sube desde una posición, luego desaparece.
@@ -104,14 +99,10 @@ func create_circle_texture(color: Color, size: int = 30) -> ImageTexture:
 				image.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(image)
 
-## Actualiza los slots del combo con los nuevos colores objetivo.
-## [param new_target] Array de colores que forman el nuevo combo
-func update_combo_target(new_target: Array[Color]) -> void:
-	combo_target = new_target
-
 ## Quema los slots antiguos (animación de shrinks) y muestra los nuevos.
 ## Se llama cuando se completa un combo o se genera uno nuevo.
-func burn_and_update_slots() -> void:
+## [param targets] Array de colores que forman el nuevo combo objetivo
+func burn_and_update_slots(targets: Array[Color]) -> void:
 	for i in range(Config.COMBO_SIZE):
 		var slot: TextureRect = parent.get_node("UI/ComboSlot" + str(i))
 		slot.modulate = Color(0.15, 0.15, 0.15, 1)
@@ -121,7 +112,7 @@ func burn_and_update_slots() -> void:
 
 	for i in range(Config.COMBO_SIZE):
 		var slot: TextureRect = parent.get_node("UI/ComboSlot" + str(i))
-		slot.texture = create_circle_texture(combo_target[i], 30)
+		slot.texture = create_circle_texture(targets[i], 30)
 		slot.modulate = Color.WHITE
 		var tween := parent.create_tween()
 		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.15)
