@@ -39,6 +39,9 @@ func generate_new_combo() -> void:
 ## [param caught_color] Color de la pieza que fue atrapada
 ## Retorna: [HIT_MATCH] si completó el combo, [HIT_MISS] si se equivocó, [HIT_NEUTRAL] si sigue en progreso
 func check_hit(caught_color: Color) -> int:
+	# Guard: si el combo ya está completo, no hay nada que evaluar
+	if combo_progress.size() >= Config.COMBO_SIZE:
+		return HIT_NEUTRAL
 	if combo_progress.size() < Config.COMBO_SIZE and caught_color == combo_target[combo_progress.size()]:
 		combo_progress.append(caught_color)
 		if combo_progress.size() == Config.COMBO_SIZE:
